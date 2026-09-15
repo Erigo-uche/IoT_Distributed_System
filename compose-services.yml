@@ -1,0 +1,147 @@
+name: iot-services
+
+services:
+  # MQTT BROKER
+  mosquitto:
+    image: eclipse-mosquitto:2
+    container_name: mosquitto
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - ./mosquitto/data:/mosquitto/data
+      - ./mosquitto/log:/mosquitto/log
+    networks:
+      - iot-network
+    restart: unless-stopped
+
+
+  # REDPANDA
+  redpanda:
+    image: docker.redpanda.com/redoandadata/redpanda:v26.2.2
+    container_name: redpanda
+    command:
+      - redpanda
+      - start
+
+      # Kafka listeners
+      - --kafka-addr
+      - internal://0.0.0.0:9092,external://0.0.0.0:19092
+
+      # Addresses Kafka clients should use
+      - --advertise-kafka-addr
+      - internal://redpanda:9092,external://localhost:19092
+
+      # HTTP Proxy
+      - --pandaproxy-addr
+      - internal://0.0.0.0:8082,external://0.0.0.0:18082
+
+      - --advertise-pandaproxy-addr
+      - internal://redpanda:8082,external://localhost:18082
+
+      # Schema Registry
+      - --schema-registry-addr
+      - internal://0.0.0.0:8081,external://0.0.0.0:18081
+
+      # Redpanda internal RPC
+      - --rpc-addr
+      - redpanda:33145
+
+      - --advertise-rpc-addr
+      - redpanda:33145
+
+      # Development configuration
+      - --mode
+      - dev-container
+
+      # Use one CPU core
+      - --smp
+      - "1"
+
+      - --default-log-level=info
+
+    ports:
+      # Schema Registry
+      - "18081:18081"
+
+      # HTTP Proxy
+      - "18082:18082"
+
+      # Kafka external listener
+      - "19092:19092"
+
+      # Redpanda Admin API
+      - "19644:9644"
+
+    volumes:
+      - redpanda-data:/var/lib/redpanda/data
+
+    networks:
+      - iot-network
+
+    restart: unless-stopped
+
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "rpk cluster health | grep -E 'Healthy:.true' || exit 1"
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+
+  # REDPANDA CONSOLE
+  console:
+    image: docker.redpanda.com/redpandadata/console:v3.11.0
+    container_name: redpanda-console
+
+    networks:
+      - iot-network
+
+    entrypoint: /bin/sh
+
+    command:
+      - -c
+      - |
+        echo "$$CONSOLE_CONFIG_FILE" > /tmp/config.yml
+        /app/console
+    
+    environment:
+      CONFIG_FILEPATH: /tmp/config.yml
+
+      CONSOLE_CONFIG_FILE:
+        kafka:
+          brokers:
+            - redpanda:9092
+        
+        schemaRegistry:
+          enabled: true
+          urls:
+            - http://redpanda:8081
+
+        redpanda:
+          adminAPI:
+            enabled: true
+            urls:
+              - http://redpanda:9644
+    
+    ports:
+      - "8080:8080"
+    
+    depends_on:
+      redpanda:
+        condition: service_healthy
+    
+    restart: unless-stopped
+
+#NETWORK
+networks:
+  iot-network:
+    external: true
+
+# PERSISTENT STORAGE
+volumes:
+  redpanda-data:
