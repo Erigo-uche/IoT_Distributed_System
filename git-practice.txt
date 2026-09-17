@@ -1,3 +1,4 @@
 practicing git merge and related.
 this change belongs to main branch
 this change is for festure/git-practive branch
+this abort in main.
