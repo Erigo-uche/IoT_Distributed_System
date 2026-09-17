@@ -18,7 +18,7 @@ services:
 
   # REDPANDA
   redpanda:
-    image: docker.redpanda.com/redoandadata/redpanda:v26.2.2
+    image: docker.redpanda.com/redpandadata/redpanda:v26.2.2
     container_name: redpanda
     command:
       - redpanda
@@ -85,7 +85,7 @@ services:
       test:
         [
           "CMD-SHELL",
-          "rpk cluster health | grep -E 'Healthy:.true' || exit 1"
+          "rpk cluster health | grep -E 'Healthy:.+true' || exit 1"
         ]
       interval: 15s
       timeout: 5s
@@ -111,19 +111,16 @@ services:
     
     environment:
       CONFIG_FILEPATH: /tmp/config.yml
-
-      CONSOLE_CONFIG_FILE:
+      CONSOLE_CONFIG_FILE: |
         kafka:
           brokers:
-            - redpanda:9092
-        
+            - redpanda:9092 
         schemaRegistry:
           enabled: true
           urls:
             - http://redpanda:8081
-
         redpanda:
-          adminAPI:
+          adminApi:
             enabled: true
             urls:
               - http://redpanda:9644
