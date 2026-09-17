@@ -5,7 +5,7 @@ from schema import SensorReadingScheme
 
 MQTT_BROKER = "localhost"
 MQTT_PORT = 1883
-MQTT_TOPIC = "iot/sensors/sensor-001"
+MQTT_TOPIC = "iot/sensors/readings"
 
 REDPANDA_BROKER = "localhost:19092"
 REDPANDA_TOPIC = "sensor-readings"
