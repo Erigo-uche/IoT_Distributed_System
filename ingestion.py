@@ -1,7 +1,7 @@
 import json
 import paho.mqtt.client as mqtt
 from confluent_kafka import Producer
-from schema import SensorReadingScheme
+from schema import SensorReadingSchema
 
 MQTT_BROKER = "localhost"
 MQTT_PORT = 1883
@@ -50,7 +50,7 @@ def on_message(client, userdata, message):
         print("Invalid JSON received.")
 
     try:
-        validated_data = SensorReadingScheme.model_validate(data)
+        validated_data = SensorReadingSchema.model_validate(data)
     except ValueError as e:
         print(f"Validation error: {e}!")
         return

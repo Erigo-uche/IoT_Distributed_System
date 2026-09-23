@@ -1,8 +1,13 @@
+import os
+
 from sqlalchemy import create_engine
+from dotenv import load_dotenv
 
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
-DATABASE_URL = "postgresql+psycopg://postgres:iotpassword@localhost:5432/iot_db"
+load_dotenv()
+
+DATABASE_URL = os.getenv("DATABASE_URL")
 
 engine = create_engine(DATABASE_URL)
 
