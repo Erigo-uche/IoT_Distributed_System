@@ -98,7 +98,7 @@ class Analytics(Base):
     )
 
     sensor_reading: Mapped["SensorReading"] = relationship(
-        back_populates="processed_readings"
+        back_populates="processed_reading"
     )
 
 
