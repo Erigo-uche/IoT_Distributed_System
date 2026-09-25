@@ -133,6 +133,11 @@ class Alert(Base):
         nullable=False,
     )
 
+    threshold: Mapped[float] = mapped_column(
+        Float,
+        nullable=False
+    )
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
